@@ -1,23 +1,21 @@
 package com.hanu.chat.util;
 
 public class FileCustom {
-	private int id;
+	private String id;
 	private String name;
 	private byte[] data;
-	private String fileExtention;
 	
-	public FileCustom(int id, String name, byte[] data, String fileExtention) {
+	public FileCustom(String id, String name, byte[] data) {
 		this.id = id;
 		this.name = name;
 		this.data = data;
-		this.fileExtention = fileExtention;
 	}
 
-	public int getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -36,14 +34,13 @@ public class FileCustom {
 	public void setData(byte[] data) {
 		this.data = data;
 	}
-
-	public String getFileExtention() {
-		return fileExtention;
+	
+	@Override
+	public String toString() {
+		return this.name;
 	}
-
-	public void setFileExtention(String fileExtention) {
-		this.fileExtention = fileExtention;
-	}
+	
+	
 	
 	
 	

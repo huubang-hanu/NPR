@@ -86,12 +86,16 @@ public class WelcomeView extends JFrame {
 		contentPane.add(lblNewLabel_5);
 		
 		JLabel lblNewLabel_4 = new JLabel("");
-		lblNewLabel_4.setIcon(new ImageIcon("C:\\Users\\nhbang\\eclipse-workspace\\ChatApplication\\image\\logo.png"));
+		ImageIcon iconFeature = createImageIcon("/logo.png",
+                "logo icon");
+		lblNewLabel_4.setIcon(iconFeature);
 		lblNewLabel_4.setBounds(700, 399, 64, 64);
 		contentPane.add(lblNewLabel_4);
-		
+			
 		JLabel lblNewLabel_3 = new JLabel("");
-		lblNewLabel_3.setIcon(new ImageIcon("C:\\Users\\nhbang\\eclipse-workspace\\ChatApplication\\image\\icons8-chat-100.png"));
+		ImageIcon logo = createImageIcon("/icons8-chat-100.png",
+                "logo icon");
+		lblNewLabel_3.setIcon(logo);
 		lblNewLabel_3.setBounds(499, 149, 111, 85);
 		contentPane.add(lblNewLabel_3);
 		
@@ -123,7 +127,9 @@ public class WelcomeView extends JFrame {
 		JLabel lblNewLabel_2 = new JLabel("Password:");
 		lblNewLabel_2.setForeground(Color.WHITE);
 		lblNewLabel_2.setFont(new Font("Segoe UI", Font.ITALIC, 18));
-		lblNewLabel_2.setIcon(new ImageIcon("C:\\Users\\nhbang\\eclipse-workspace\\ChatApplication\\image\\icons8-password-30.png"));
+		ImageIcon passwordIcon = createImageIcon("/icons8-password-30.png",
+                "user icon");
+		lblNewLabel_2.setIcon(passwordIcon);
 		lblNewLabel_2.setHorizontalAlignment(SwingConstants.CENTER);
 		lblNewLabel_2.setBounds(160, 327, 111, 30);
 		contentPane.add(lblNewLabel_2);
@@ -131,14 +137,19 @@ public class WelcomeView extends JFrame {
 		JLabel lblNewLabel_1 = new JLabel("Username:");
 		lblNewLabel_1.setForeground(Color.WHITE);
 		lblNewLabel_1.setFont(new Font("Segoe UI", Font.ITALIC, 21));
-		lblNewLabel_1.setIcon(new ImageIcon("C:\\Users\\nhbang\\eclipse-workspace\\ChatApplication\\image\\icons8-user-30.png"));
+		ImageIcon userIcon = createImageIcon("/icons8-user-30.png",
+                "user icon");
+		lblNewLabel_1.setIcon(userIcon);
 		lblNewLabel_1.setHorizontalAlignment(SwingConstants.CENTER);
 		lblNewLabel_1.setBounds(156, 244, 129, 30);
 		contentPane.add(lblNewLabel_1);
 		
 		JLabel lblNewLabel = new JLabel("");
 		lblNewLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-		lblNewLabel.setIcon(new ImageIcon("C:\\Users\\nhbang\\eclipse-workspace\\ChatApplication\\image\\1900851.png"));
+		ImageIcon background = createImageIcon("/1900851.png",
+                "logo icon");
+		
+		lblNewLabel.setIcon(background);
 		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		lblNewLabel.setBounds(0, 0, 869, 631);
 		contentPane.add(lblNewLabel);
@@ -155,5 +166,17 @@ public class WelcomeView extends JFrame {
 				client.signUp(tfUsername.getText(), String.valueOf(tfPassword.getPassword()));
 			}
 		});
+	}
+	
+	/** Returns an ImageIcon, or null if the path was invalid. */
+	protected ImageIcon createImageIcon(String path,
+	                                           String description) {
+	    java.net.URL imgURL = getClass().getResource(path);
+	    if (imgURL != null) {
+	        return new ImageIcon(imgURL, description);
+	    } else {
+	        System.err.println("Couldn't find file: " + path);
+	        return null;
+	    }
 	}
 }

@@ -1,20 +1,15 @@
 package com.hanu.chat.client;
 
-import java.awt.Font;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
+import java.util.UUID;
 
-import javax.swing.BoxLayout;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.border.EmptyBorder;
 
 import com.hanu.chat.util.FileCustom;
 import com.hanu.chat.util.Packet;
@@ -27,7 +22,6 @@ public class Client {
 	private JTabbedPane chatTabPane;;
 	private Socket socket;
 	private JFrame welcomeView;
-	private static ArrayList<FileCustom> listFile = new ArrayList<>()	;
 	
 	public Client(String hostName, int port, JFrame welcomeView) {
 		this.welcomeView = welcomeView;
@@ -95,6 +89,8 @@ public class Client {
 							inActiveTab(tabName);
 							break;
 						case Tag.SEND_FILE:
+							FileCustom file = new FileCustom( UUID.randomUUID().toString(), packet.getContent(), packet.getFileContent());
+							setFileListUI(file, packet.getSender());
 							
 							break;
 						case Tag.SIGNIN_SUCCESS:
@@ -129,24 +125,16 @@ public class Client {
 		th.start();
 	}
 	
-	private void addFileToList(String fileName, byte[] data) {
-		JPanel fileContainer = new JPanel();
-		fileContainer.setLayout(new BoxLayout(fileContainer, BoxLayout.Y_AXIS));
+	private void setFileListUI(FileCustom file, String sender) {
+		int index = getTabPostition(sender);
+		ChatTab chatTab = (ChatTab) chatTabPane.getComponent(index);
+		chatTab.getContent().append("[" +sender + "]: " + file.getName() +"\n");
 		
-		JLabel fileTitle = new JLabel(fileName);
-		fileTitle.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-		fileTitle.setBorder(new EmptyBorder(10,0,10,0));
+		chatTab.addNewFile(file);
 		
 	}
 	
-	private String getFileExtention(String fileName) {
-		int i = fileName.lastIndexOf(".");
-		if(i>0) {
-			return fileName.substring(i+1);
-		}else {
-			return null;
-		}
-	}
+
 	
 	/**
 	 * Set content by tab's title
@@ -182,6 +170,8 @@ public class Client {
 		}
 		return -1;
 	}
+	
+	
 
 	/**
 	 * Send message from client
@@ -196,6 +186,7 @@ public class Client {
 			e.printStackTrace();
 		}
 	}
+	
 
 	/**
 	 * Send exit message to request server close socket of this client

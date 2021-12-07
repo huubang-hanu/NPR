@@ -95,6 +95,7 @@ public class ClientThread extends Thread {
 						break;
 					case Tag.SEND_FILE: // User send message
 						if(packet.getReceiver().equals("Global")) {
+							packet.setSender("Global");
 							chatServer.broadcast(packet, this);
 						} else {
 							chatServer.broadcastToClient(packet);

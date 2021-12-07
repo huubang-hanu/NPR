@@ -53,4 +53,10 @@ public class User implements Serializable{
 		User other = (User) obj;
 		return Objects.equals(username, other.username);
 	}
+	
+	@Override
+	public String toString() {
+		
+		return username;
+	}
 }
