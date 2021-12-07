@@ -12,6 +12,8 @@ import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import javax.swing.ImageIcon;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.Color;
 import javax.swing.JTextField;
 import javax.swing.JSeparator;
@@ -23,7 +25,7 @@ public class WelcomeView extends JFrame {
 	private JPanel contentPane;
 	private JTextField tfUsername;
 	private JPasswordField tfPassword;
-
+	
 	/**
 	 * Launch the application.
 	 */
@@ -45,7 +47,8 @@ public class WelcomeView extends JFrame {
 	 */
 	public WelcomeView() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 885, 670);
+		setTitle("BT Social Network");
+		setBounds(250, 30, 885, 670);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -99,7 +102,7 @@ public class WelcomeView extends JFrame {
 		tfPassword = new JPasswordField();
 		tfPassword.setForeground(Color.BLACK);
 		tfPassword.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-		tfPassword.setBounds(160, 357, 296, 33);
+		tfPassword.setBounds(160, 357, 296, 31);
 		contentPane.add(tfPassword);
 		tfPassword.setOpaque(false);
 		tfPassword.setBorder(null);
@@ -111,7 +114,7 @@ public class WelcomeView extends JFrame {
 		tfUsername = new JTextField();
 		tfUsername.setForeground(Color.BLACK);
 		tfUsername.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-		tfUsername.setBounds(160, 272, 296, 33);
+		tfUsername.setBounds(160, 272, 296, 30);
 		contentPane.add(tfUsername);
 		tfUsername.setColumns(10);
 		tfUsername.setOpaque(false);
@@ -139,5 +142,18 @@ public class WelcomeView extends JFrame {
 		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		lblNewLabel.setBounds(0, 0, 869, 631);
 		contentPane.add(lblNewLabel);
+		Client client = new Client("127.0.0.1", 8085, this);
+		
+		btnSignIn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				client.login(tfUsername.getText(), String.valueOf(tfPassword.getPassword()));
+			}
+		});
+		
+		btnSignup.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				client.signUp(tfUsername.getText(), String.valueOf(tfPassword.getPassword()));
+			}
+		});
 	}
 }

@@ -37,7 +37,7 @@ public class ClientThread extends Thread {
 		try {
 			inStream = new ObjectInputStream(socket.getInputStream());
 			outStream = new ObjectOutputStream(socket.getOutputStream());
-			
+
 			Packet packet = null;
 			do {
 				try {
@@ -47,19 +47,41 @@ public class ClientThread extends Thread {
 					}
 
 					switch (packet.getTag()) {
-					case Tag.NEW_USER_CONNECT: // New user connect to server
-						if (!repo.isExist(packet.getSender())) {
-							repo.addUser(packet.getSender(), this);
-
-							// Set data for list online user in Server view
-							this.listUserOnline.setListData(repo.getUsernames());
-
-							// Broadcast message to others people in application
-							chatServer.broadcast(packet, this);
-
+					case Tag.SIGNUP_REQUEST:
+						String username = packet.getSender();
+						String password = packet.getContent();
+						if (repo.signUp(username, password)) {
+							sendMessage(new Packet(Tag.SIGNUP_SUCCESS, "Sign up success. Let join with us", "server",
+									packet.getSender()));
 						} else {
-							System.out.println(packet.getSender() + " already exist!");
+							sendMessage(new Packet(Tag.INVALID_USER, "Username already exist. Try again!", "server",
+									packet.getSender()));
 						}
+						break;
+					case Tag.SIGNIN_REQUEST:
+						if (!repo.signIn(packet.getSender(), packet.getContent())) {
+							sendMessage(new Packet(Tag.INVALID_USER, "Wrong username or password", "server",
+									packet.getSender()));
+							break;
+						}
+
+						if (repo.isOnline(packet.getSender())) {
+							sendMessage(new Packet(Tag.USER_ALREADY_SIGNIN, "This user already sign in", "server",
+									packet.getSender()));
+							break;
+						}
+
+						repo.addUser(packet.getSender(), this);
+
+						// Set data for list online user in Server view
+						this.listUserOnline.setListData(repo.getUsernames());
+						sendMessage(new Packet(Tag.SIGNIN_SUCCESS, "Sign success",repo.getUsernames(), "server",
+								packet.getSender()));
+						
+						// Broadcast message to others people in application
+						chatServer.broadcast(
+								new Packet(Tag.NEW_USER_CONNECT, packet.getSender(), "Server", "All online user"), 
+								this);
 						break;
 
 					case Tag.SEND_MESSAGE: // User send message
@@ -71,22 +93,29 @@ public class ClientThread extends Thread {
 									packet.getSender(), packet.getReceiver()));
 						}
 						break;
+					case Tag.SEND_FILE: // User send message
+						if(packet.getReceiver().equals("Global")) {
+							chatServer.broadcast(packet, this);
+						} else {
+							chatServer.broadcastToClient(packet);
+						}
+						
+						break;
 					case Tag.EXIT: // User log out application
 						chatServer.broadcast(new Packet(Tag.USER_INACTIVE, packet.getContent(), packet.getSender(),
 								packet.getReceiver()), this);
 						chatServer.removeClient(packet.getSender());
+						
 						this.listUserOnline.setListData(repo.getUsernames());
 						break;
 					default:
 						break;
 					}
-				
+
 				} catch (ClassNotFoundException e) {
 					e.printStackTrace();
 				}
-			}while (!packet.getTag().equalsIgnoreCase(Tag.EXIT));
-
-			socket.close();
+			} while (!packet.getTag().equalsIgnoreCase(Tag.EXIT));
 		} catch (IOException e) {
 			System.out.println("ClientThread's error : " + e.getMessage());
 			e.printStackTrace();
@@ -99,7 +128,6 @@ public class ClientThread extends Thread {
 	 * @param message
 	 */
 	public void sendMessage(Packet packet) {
-//		writer.println(message);
 		try {
 			outStream.writeObject(packet);
 			outStream.flush();

@@ -1,13 +1,9 @@
 package com.hanu.chat.client;
 
-import java.awt.EventQueue;
 
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
-
-import com.hanu.chat.database.Repository;
 
 import java.awt.Color;
 import javax.swing.JTabbedPane;
@@ -23,31 +19,13 @@ public class ClientView extends JFrame {
 	 */
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
-	private Repository repo;
 	private JTabbedPane chatTabPane;
 	private Client client;
 
 	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					ClientView frame = new ClientView();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-
-	/**
 	 * Create the frame.
 	 */
-	public ClientView() {
+	public ClientView(Client client,String[] onlineUser, String username) {
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		//Add event handle before close chat app
@@ -60,7 +38,7 @@ public class ClientView extends JFrame {
 				System.exit(0);
 			}
 		});
-		setBounds(100, 100, 582, 450);
+		setBounds(100, 100, 798, 576);
 		setTitle("BT Social Network");
 		contentPane = new JPanel();
 		contentPane.setBackground(new Color(127, 255, 212));
@@ -69,23 +47,16 @@ public class ClientView extends JFrame {
 		contentPane.setLayout(null);
 		
 		chatTabPane = new JTabbedPane(JTabbedPane.TOP);
-		chatTabPane.setBounds(10, 38, 546, 349);
+		chatTabPane.setBounds(10, 38, 762, 479);
 		contentPane.add(chatTabPane);
-		
-		this.repo = Repository.getRepository();
-		
-		String ipAddress =JOptionPane.showInputDialog(contentPane, "Enter IP address");
-		String port =JOptionPane.showInputDialog(contentPane, "Enter port number");
-		String username =JOptionPane.showInputDialog(contentPane, "Enter username");
-		
-		client = new Client(ipAddress, Integer.parseInt(port), chatTabPane);
-		JLabel lbUsername = new JLabel("Username: " +username);
+
+		this.client = client;
+		JLabel lbUsername = new JLabel("Username: " + username);
 		lbUsername.setFont(new Font("Imprint MT Shadow", Font.ITALIC, 13));
 		lbUsername.setBounds(10, 11, 214, 23);
 		contentPane.add(lbUsername);
 		client.setUsername(username);
-		initUI(username);
-		client.execute();
+		initUI(onlineUser, username);
 	}
 	
 	
@@ -98,10 +69,10 @@ public class ClientView extends JFrame {
 	 * 
 	 * @param excludeUsername
 	 */
-	private void initUI(String excludeUsername) {
+	private void initUI(String[] usernames, String excludeUsername) {
 		
 		//Get all online users
-		String[] usernames = repo.getUsernames();
+//		String[] usernames = repo.getUsernames();
 
 		//Set global tab
 		ChatTab globalTab  = new ChatTab(client, "Global");
@@ -118,4 +89,18 @@ public class ClientView extends JFrame {
 			}
 		}
 	}
+
+
+
+	public JTabbedPane getChatTabPane() {
+		return chatTabPane;
+	}
+
+
+
+	public void setChatTabPane(JTabbedPane chatTabPane) {
+		this.chatTabPane = chatTabPane;
+	}
+	
+	
 }

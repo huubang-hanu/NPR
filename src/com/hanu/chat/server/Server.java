@@ -70,11 +70,11 @@ public class Server {
 		if(packet.getTag().equals(Tag.USER_INACTIVE)) {
 			this.serverLog.append(packet.getSender() + " LOGGED OUT at " + currentTime +"\n");
 		}else if(packet.getTag().equals(Tag.NEW_USER_CONNECT)) {
-			this.serverLog.append(packet.getSender() + " SIGN IN at " + currentTime + "\n");
+			this.serverLog.append(packet.getContent() + " SIGN IN at " + currentTime + "\n");
 		}
 		
 		//Send message to other users in system, exclude sender
-		this.repo.getClients().forEach(client ->{
+		this.repo.getClientThreads().forEach(client ->{
 			if(client != excludeClient) {
 				client.sendMessage(packet);
 			}

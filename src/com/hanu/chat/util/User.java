@@ -1,19 +1,18 @@
 package com.hanu.chat.util;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class User {
+public class User implements Serializable{
 	private String username;
 	private String password;
-	private String email;
 	private boolean isOnline;
 	
 	
-	public User(String username, String password, String email, boolean isOnline) {
+	public User(String username, String password, boolean isOnline) {
 		super();
 		this.username = username;
 		this.password = password;
-		this.email = email;
 		this.isOnline = isOnline;
 	}
 	
@@ -29,12 +28,6 @@ public class User {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	public String getEmail() {
-		return email;
-	}
-	public void setEmail(String email) {
-		this.email = email;
-	}
 
 	public boolean isOnline() {
 		return isOnline;
@@ -46,7 +39,7 @@ public class User {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(email, isOnline, password, username);
+		return Objects.hash(isOnline, password, username);
 	}
 
 	@Override
@@ -58,12 +51,6 @@ public class User {
 		if (getClass() != obj.getClass())
 			return false;
 		User other = (User) obj;
-		return Objects.equals(email, other.email) && isOnline == other.isOnline
-				&& Objects.equals(password, other.password) && Objects.equals(username, other.username);
+		return Objects.equals(username, other.username);
 	}
-	
-	
-	
-	
-	
 }

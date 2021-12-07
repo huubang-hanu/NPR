@@ -10,19 +10,35 @@ public class Packet implements Serializable{
 	
 	private String tag;
 	private String content;
+	private String[] onlineUsers;
 	private String sender;
 	private String receiver;
+	private byte[] fileContent;
 	
-	/**
-	 * 
-	 * @param tag
-	 * @param content
-	 * @param sender
-	 * @param receiver
-	 */
 	public Packet(String tag, String content, String sender, String receiver) {
 		this.tag = tag;
 		this.content = content;
+		this.sender = sender;
+		this.receiver = receiver;
+	}
+	
+	
+
+	public Packet(String tag, String content, String sender, String receiver, byte[] fileContent) {
+		super();
+		this.tag = tag;
+		this.content = content;
+		this.sender = sender;
+		this.receiver = receiver;
+		this.fileContent = fileContent;
+	}
+
+
+
+	public Packet(String tag, String content, String[] onlineUsers, String sender, String receiver) {
+		this.tag = tag;
+		this.content = content;
+		this.onlineUsers = onlineUsers;
 		this.sender = sender;
 		this.receiver = receiver;
 	}
@@ -43,6 +59,14 @@ public class Packet implements Serializable{
 		this.content = content;
 	}
 
+	public String[] getOnlineUsers() {
+		return onlineUsers;
+	}
+
+	public void setOnlineUsers(String[] onlineUsers) {
+		this.onlineUsers = onlineUsers;
+	}
+
 	public String getSender() {
 		return sender;
 	}
@@ -58,6 +82,19 @@ public class Packet implements Serializable{
 	public void setReceiver(String receiver) {
 		this.receiver = receiver;
 	}
+
+
+
+	public byte[] getFileContent() {
+		return fileContent;
+	}
+
+
+
+	public void setFileContent(byte[] fileContent) {
+		this.fileContent = fileContent;
+	}
+	
 	
 	
 }

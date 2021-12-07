@@ -1,13 +1,16 @@
 package com.hanu.chat.database;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.hanu.chat.server.ClientThread;
 import com.hanu.chat.util.Tag;
+import com.hanu.chat.util.User;
 
 /**
  * This is repo to store online user in server
@@ -16,17 +19,17 @@ import com.hanu.chat.util.Tag;
  *
  */
 public class Repository {
-	private Map<String, ClientThread> users = new HashMap<String, ClientThread>();
+	private Map<String, ClientThread> userThreads = new HashMap<String, ClientThread>();
 	private static Repository instance;
 	private FileIO fileIO;
-	private Set<String> usernames;
+	private Set<User> users;
 
 	private Repository() {
 		fileIO = new FileIO();
-		usernames = (HashSet<String>) fileIO.readDataFromFile(Tag.FILE_NAME);
-		if (usernames == null) {
-			usernames = new HashSet<String>();
-			fileIO.saveDataToFile(usernames, Tag.FILE_NAME);
+		users = (HashSet<User>) fileIO.readDataFromFile(Tag.FILE_NAME);
+		if (users == null) {
+			users = new HashSet<User>();
+			fileIO.saveDataToFile(users, Tag.FILE_NAME);
 		}
 	}
 
@@ -41,12 +44,20 @@ public class Repository {
 	}
 
 	/**
-	 * Get set of username
+	 * Get set of usernames
 	 * 
 	 * @return
 	 */
 	public String[] getUsernames() {
-		return this.usernames.toArray(String[]::new);
+		List<String> onlineUsers = new ArrayList<String>();
+		
+		for (User user : users) {
+			if(user.isOnline()) {
+				onlineUsers.add(user.getUsername());
+			}
+		}
+		
+		return onlineUsers.toArray(String[]::new);
 	}
 
 	/**
@@ -54,20 +65,46 @@ public class Repository {
 	 * 
 	 * @return
 	 */
-	public Collection<ClientThread> getClients() {
-		return users.values();
+	public Collection<ClientThread> getClientThreads() {
+		return userThreads.values();
 	}
 
-	/**
-	 * Sign up new user
-	 * 
-	 * @param username
-	 * @param client
-	 */
+
 	public void addUser(String username, ClientThread client) {
-		this.users.put(username, client);
-		usernames.add(username);
-		fileIO.saveDataToFile(usernames, Tag.FILE_NAME);
+		this.userThreads.put(username, client);
+	}
+
+	public boolean signIn(String username, String password) {
+		for (User user : users) {
+			if(user.getUsername().equals(username)&&user.getPassword().equals(password)) {
+				user.setOnline(true);
+				fileIO.saveDataToFile(this.users, Tag.FILE_NAME);
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public boolean signUp(String username, String password) {
+		if(!isUserExist(username)) {
+			User user = new User(username, password, false);
+			users.add(user);
+			fileIO.saveDataToFile(this.users, Tag.FILE_NAME);
+			return true;
+		}
+		
+		return false;
+	}
+	
+	public boolean isUserExist(String username) {
+		for (User user : users) {
+			if(user.getUsername().equals(username)) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 
 	/**
@@ -75,9 +112,13 @@ public class Repository {
 	 * @param username
 	 */
 	public void removeUser(String username) {
-		this.users.remove(username);
-		usernames.remove(username);
-		fileIO.saveDataToFile(this.usernames, Tag.FILE_NAME);
+		this.userThreads.remove(username);
+		for (User user : users) {
+			if(user.getUsername().equals(username)) {
+				user.setOnline(false);
+			}
+		}
+		fileIO.saveDataToFile(this.users, Tag.FILE_NAME);
 	}
 
 	/**
@@ -87,11 +128,11 @@ public class Repository {
 	 * @return
 	 */
 	public ClientThread getByUsername(String username) {
-		return this.users.get(username);
+		return this.userThreads.get(username);
 	}
 
-	public boolean isExist(String username) {
-		ClientThread client = this.users.get(username);
+	public boolean isOnline(String username) {
+		ClientThread client = this.userThreads.get(username);
 		if (client == null) {
 			return false;
 		} else {

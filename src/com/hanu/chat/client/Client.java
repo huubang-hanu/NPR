@@ -1,46 +1,63 @@
 package com.hanu.chat.client;
 
+import java.awt.Font;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.border.EmptyBorder;
+
+import com.hanu.chat.util.FileCustom;
 import com.hanu.chat.util.Packet;
 import com.hanu.chat.util.Tag;
 
 public class Client {
-	private String hostName;
-	private int port;
 	private String username;
 	private ObjectOutputStream outStream;
 	private ObjectInputStream inStream;
-//	private PrintWriter printWriter;
-//	private BufferedReader bufferedReader;
 	private JTabbedPane chatTabPane;;
 	private Socket socket;
-
-	public Client(String hostName, int port, JTabbedPane chatTabPane) {
-		this.hostName = hostName;
-		this.port = port;
-		this.chatTabPane = chatTabPane;
-	}
-
-	public void execute() {
+	private JFrame welcomeView;
+	private static ArrayList<FileCustom> listFile = new ArrayList<>()	;
+	
+	public Client(String hostName, int port, JFrame welcomeView) {
+		this.welcomeView = welcomeView;
+		
 		try {
 			socket = new Socket(hostName, port);
 			outStream = new ObjectOutputStream(socket.getOutputStream());
 			inStream = new ObjectInputStream(socket.getInputStream());
-//			printWriter = new PrintWriter(socket.getOutputStream(), true);
-//			bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//			printWriter.println(Tag.NEW_USER_CONNECT + ":" + username);
-			outStream.writeObject(new Packet(Tag.NEW_USER_CONNECT, "New user connect!", username, Tag.SERVER));
 			receive();
 
 		} catch (UnknownHostException ex) {
 			System.out.println("Server not found: " + ex.getMessage());
 		} catch (IOException ex) {
 			System.out.println("I/O Error: " + ex.getMessage());
+		}
+	}
+	
+	public void login(String username, String password) {
+		try {
+			outStream.writeObject(new Packet(Tag.SIGNIN_REQUEST, password, username, Tag.SERVER));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void signUp(String username, String password) {
+		try {
+			outStream.writeObject(new Packet(Tag.SIGNUP_REQUEST, password, username, Tag.SERVER));
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -61,12 +78,11 @@ public class Client {
 
 					switch (packet.getTag()) {
 						case Tag.NEW_USER_CONNECT:
-							String newUsername = packet.getSender();
+							String newUsername = packet.getContent();
 							ChatTab tab = new ChatTab(this, newUsername);
 							chatTabPane.add(newUsername, tab);
 							break;
 						case Tag.SEND_MESSAGE:
-							
 							String msg = "[" + packet.getSender() + "]: " + packet.getContent();
 							setContent(packet.getSender(), msg);
 							break;
@@ -77,6 +93,28 @@ public class Client {
 						case Tag.USER_INACTIVE:
 							String tabName = packet.getSender();
 							inActiveTab(tabName);
+							break;
+						case Tag.SEND_FILE:
+							
+							break;
+						case Tag.SIGNIN_SUCCESS:
+							ClientView view = new ClientView(this, packet.getOnlineUsers(), packet.getReceiver());
+							setChatTabPane(view.getChatTabPane());
+							this.welcomeView.setVisible(false);
+							view.setVisible(true);
+							break;
+						case Tag.USER_ALREADY_SIGNIN:
+							System.out.println("This user already sign in");
+							JOptionPane.showConfirmDialog(welcomeView, 
+					                packet.getContent(), "Server message", JOptionPane.DEFAULT_OPTION);
+							break;
+						case Tag.SIGNUP_SUCCESS:
+							JOptionPane.showConfirmDialog(welcomeView, 
+					                packet.getContent(), "Server message", JOptionPane.DEFAULT_OPTION);
+							break;
+						case Tag.INVALID_USER:
+							JOptionPane.showConfirmDialog(welcomeView, 
+					                packet.getContent(), "Server message", JOptionPane.DEFAULT_OPTION);
 							break;
 						default:
 							break;
@@ -89,6 +127,25 @@ public class Client {
 		};
 		Thread th = new Thread(runnable);
 		th.start();
+	}
+	
+	private void addFileToList(String fileName, byte[] data) {
+		JPanel fileContainer = new JPanel();
+		fileContainer.setLayout(new BoxLayout(fileContainer, BoxLayout.Y_AXIS));
+		
+		JLabel fileTitle = new JLabel(fileName);
+		fileTitle.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+		fileTitle.setBorder(new EmptyBorder(10,0,10,0));
+		
+	}
+	
+	private String getFileExtention(String fileName) {
+		int i = fileName.lastIndexOf(".");
+		if(i>0) {
+			return fileName.substring(i+1);
+		}else {
+			return null;
+		}
 	}
 	
 	/**
@@ -159,4 +216,14 @@ public class Client {
 	public String getUsername() {
 		return this.username;
 	}
+
+	public JTabbedPane getChatTabPane() {
+		return chatTabPane;
+	}
+
+	public void setChatTabPane(JTabbedPane chatTabPane) {
+		this.chatTabPane = chatTabPane;
+	}
+	
+	
 }
