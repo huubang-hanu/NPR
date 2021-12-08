@@ -18,6 +18,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.ImageIcon;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -59,7 +60,7 @@ public class ChatTab extends JPanel {
 		setBounds(10, 11, 765, 453);
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		scrollPane.setBounds(10, 0, 594, 401);
+		scrollPane.setBounds(10, 0, 561, 401);
 		add(scrollPane);
 
 		content = new JTextArea();
@@ -70,7 +71,7 @@ public class ChatTab extends JPanel {
 
 		JScrollPane scrollPane_1 = new JScrollPane();
 		scrollPane_1.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		scrollPane_1.setBounds(10, 414, 597, 30);
+		scrollPane_1.setBounds(10, 414, 561, 30);
 		add(scrollPane_1);
 
 		message = new JTextArea();
@@ -82,6 +83,7 @@ public class ChatTab extends JPanel {
 		String sender = this.client.getUsername();
 		btnSend.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				
 				if(isAttachFile && fileContent != null) {
 					Packet filePacket = new Packet(Tag.SEND_FILE, fileToSend[0].getName(), sender, receiver);
 					filePacket.setFileContent(fileContent);
@@ -97,14 +99,13 @@ public class ChatTab extends JPanel {
 				if (msg.trim().length() == 0) {
 					return;
 				}
-
 				Packet packet = new Packet(Tag.SEND_MESSAGE, msg, sender, receiver);
 				message.setText("");
 				content.append("[You]: " + msg + "\n");
 				client.sendMessage(packet);
 			}
 		});
-		btnSend.setBounds(650, 412, 89, 32);
+		btnSend.setBounds(619, 411, 89, 32);
 		add(btnSend);
 
 		JLabel btnAttach = new JLabel("");
@@ -125,12 +126,12 @@ public class ChatTab extends JPanel {
 		
 		btnAttach.setIcon( createImageIcon("/icons8-attachment-25.png",
                 "attachment icon"));
-		btnAttach.setBounds(615, 412, 28, 32);
+		btnAttach.setBounds(581, 412, 28, 32);
 		add(btnAttach);
 		
 		listFileContainer = new JScrollPane();
 		listFileContainer.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		listFileContainer.setBounds(611, 0, 144, 401);
+		listFileContainer.setBounds(581, 0, 174, 401);
 		listFile = new JList();
 		
 		listFile.addMouseListener(new MouseAdapter() {
@@ -209,6 +210,8 @@ public class ChatTab extends JPanel {
 				FileOutputStream fileOutputStream = new FileOutputStream(fileToSave);
 				fileOutputStream.write(file.getData());
 				fileOutputStream.close(); 
+				JOptionPane.showConfirmDialog(null, 
+		                "Download successful", "Message", JOptionPane.DEFAULT_OPTION);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

@@ -7,6 +7,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.UUID;
 
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
@@ -22,12 +24,21 @@ public class Client {
 	private JTabbedPane chatTabPane;;
 	private Socket socket;
 	private JFrame welcomeView;
-	
+	private static final String TRUST_STORE_PATH = "truststore";
+	private static final String TRUST_STORE_PW = "bt123456";
+
+	static {
+		System.setProperty("javax.net.ssl.trustStore", TRUST_STORE_PATH);
+		System.setProperty("javax.net.ssl.trustStorePassword", TRUST_STORE_PW);
+	}
+
 	public Client(String hostName, int port, JFrame welcomeView) {
 		this.welcomeView = welcomeView;
-		
+
 		try {
-			socket = new Socket(hostName, port);
+			SSLSocketFactory socketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+			// create SSLSocket from factory
+			socket = (SSLSocket) socketFactory.createSocket(hostName, port);
 			outStream = new ObjectOutputStream(socket.getOutputStream());
 			inStream = new ObjectInputStream(socket.getInputStream());
 			receive();
@@ -38,7 +49,7 @@ public class Client {
 			System.out.println("I/O Error: " + ex.getMessage());
 		}
 	}
-	
+
 	public void login(String username, String password) {
 		try {
 			outStream.writeObject(new Packet(Tag.SIGNIN_REQUEST, password, username, Tag.SERVER));
@@ -46,7 +57,7 @@ public class Client {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void signUp(String username, String password) {
 		try {
 			outStream.writeObject(new Packet(Tag.SIGNUP_REQUEST, password, username, Tag.SERVER));
@@ -64,56 +75,56 @@ public class Client {
 			while (true) {
 				try {
 					Packet packet = (Packet) inStream.readObject();
-					
+
 					if (packet == null) {
 						break;
 					}
 
-
 					switch (packet.getTag()) {
-						case Tag.NEW_USER_CONNECT:
-							String newUsername = packet.getContent();
-							ChatTab tab = new ChatTab(this, newUsername);
-							chatTabPane.add(newUsername, tab);
-							break;
-						case Tag.SEND_MESSAGE:
-							String msg = "[" + packet.getSender() + "]: " + packet.getContent();
-							setContent(packet.getSender(), msg);
-							break;
-						case Tag.GLOBAL_MESSAGE:
-							msg = "[" + packet.getSender() + "]: " + packet.getContent();
-							setContent("Global", msg);
-							break;
-						case Tag.USER_INACTIVE:
-							String tabName = packet.getSender();
-							inActiveTab(tabName);
-							break;
-						case Tag.SEND_FILE:
-							FileCustom file = new FileCustom( UUID.randomUUID().toString(), packet.getContent(), packet.getFileContent());
-							setFileListUI(file, packet.getSender());
-							
-							break;
-						case Tag.SIGNIN_SUCCESS:
-							ClientView view = new ClientView(this, packet.getOnlineUsers(), packet.getReceiver());
-							setChatTabPane(view.getChatTabPane());
-							this.welcomeView.setVisible(false);
-							view.setVisible(true);
-							break;
-						case Tag.USER_ALREADY_SIGNIN:
-							System.out.println("This user already sign in");
-							JOptionPane.showConfirmDialog(welcomeView, 
-					                packet.getContent(), "Server message", JOptionPane.DEFAULT_OPTION);
-							break;
-						case Tag.SIGNUP_SUCCESS:
-							JOptionPane.showConfirmDialog(welcomeView, 
-					                packet.getContent(), "Server message", JOptionPane.DEFAULT_OPTION);
-							break;
-						case Tag.INVALID_USER:
-							JOptionPane.showConfirmDialog(welcomeView, 
-					                packet.getContent(), "Server message", JOptionPane.DEFAULT_OPTION);
-							break;
-						default:
-							break;
+					case Tag.NEW_USER_CONNECT:
+						String newUsername = packet.getContent();
+						ChatTab tab = new ChatTab(this, newUsername);
+						chatTabPane.add(newUsername, tab);
+						break;
+					case Tag.SEND_MESSAGE:
+						String msg = "[" + packet.getSender() + "]: " + packet.getContent();
+						setContent(packet.getSender(), msg);
+						break;
+					case Tag.GLOBAL_MESSAGE:
+						msg = "[" + packet.getSender() + "]: " + packet.getContent();
+						setContent("Global", msg);
+						break;
+					case Tag.USER_INACTIVE:
+						String tabName = packet.getSender();
+						inActiveTab(tabName);
+						break;
+					case Tag.SEND_FILE:
+						FileCustom file = new FileCustom(UUID.randomUUID().toString(), packet.getContent(),
+								packet.getFileContent());
+						setFileListUI(file, packet.getSender());
+
+						break;
+					case Tag.SIGNIN_SUCCESS:
+						ClientView view = new ClientView(this, packet.getOnlineUsers(), packet.getReceiver());
+						setChatTabPane(view.getChatTabPane());
+						this.welcomeView.setVisible(false);
+						view.setVisible(true);
+						break;
+					case Tag.USER_ALREADY_SIGNIN:
+						System.out.println("This user already sign in");
+						JOptionPane.showConfirmDialog(welcomeView, packet.getContent(), "Server message",
+								JOptionPane.DEFAULT_OPTION);
+						break;
+					case Tag.SIGNUP_SUCCESS:
+						JOptionPane.showConfirmDialog(welcomeView, packet.getContent(), "Server message",
+								JOptionPane.DEFAULT_OPTION);
+						break;
+					case Tag.INVALID_USER:
+						JOptionPane.showConfirmDialog(welcomeView, packet.getContent(), "Server message",
+								JOptionPane.DEFAULT_OPTION);
+						break;
+					default:
+						break;
 					}
 
 				} catch (Exception e) {
@@ -124,18 +135,16 @@ public class Client {
 		Thread th = new Thread(runnable);
 		th.start();
 	}
-	
+
 	private void setFileListUI(FileCustom file, String sender) {
 		int index = getTabPostition(sender);
 		ChatTab chatTab = (ChatTab) chatTabPane.getComponent(index);
-		chatTab.getContent().append("[" +sender + "]: " + file.getName() +"\n");
-		
-		chatTab.addNewFile(file);
-		
-	}
-	
+		chatTab.getContent().append("[" + sender + "]: " + file.getName() + "\n");
 
-	
+		chatTab.addNewFile(file);
+
+	}
+
 	/**
 	 * Set content by tab's title
 	 * 
@@ -170,8 +179,6 @@ public class Client {
 		}
 		return -1;
 	}
-	
-	
 
 	/**
 	 * Send message from client
@@ -186,7 +193,6 @@ public class Client {
 			e.printStackTrace();
 		}
 	}
-	
 
 	/**
 	 * Send exit message to request server close socket of this client
@@ -215,6 +221,5 @@ public class Client {
 	public void setChatTabPane(JTabbedPane chatTabPane) {
 		this.chatTabPane = chatTabPane;
 	}
-	
-	
+
 }
